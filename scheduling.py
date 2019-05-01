@@ -32,9 +32,9 @@ class RoundRobin:
             for val in range(self.length):
                 if cpy_duration[val] > 0:
                     done = False
-                    if cpy_duration[val] > quanta:
-                        time += quanta
-                        cpy_duration[val] -= quanta
+                    if cpy_duration[val] > self.quanta:
+                        time += self.quanta
+                        cpy_duration[val] -= self.quanta
                 else:
                     time = time + cpy_duration[val]
                     self.wait[val] = time - self.duration[val]
@@ -50,13 +50,13 @@ class RoundRobin:
             
 
 
-    def findAvgTime(self, process, n, burst, quanta):
+    def findAvgTime(self):
         
         totalWait = 0
         totalTurnAroundTime = 0
         
-        self.findWaitingTime(process, n, burst, wait, quanta)
-        self.findTurnAroundTime(process, n, burst, wait, turnAroundT)
+        self.findWaitingTime()
+        self.findTurnAroundTime()
         print("Job ID \t\t Duration \t Arrival Time \t\t Waiting", 
 		"Time \t Turn-Around Time \t Completion Time \n") 
         
@@ -65,13 +65,13 @@ class RoundRobin:
 
             totalWait += self.wait[i]
             totalTurnAroundTime += self.turnAroundT[i]
-            completionTime = self.turnAroundT[i] + arrivalTime[i]
+            completionTime = self.turnAroundT[i] + self.arrivalTime[i]
 
             print(" ", i + 1, "\t\t", self.duration[i], "\t\t", self.arrivalTime[i], 
 			"\t\t", self.wait[i], "\t\t ", self.turnAroundT[i], "\t\t ", completionTime)
             
-        print("Average Waiting Time = ", totalWait/n)
-        print("Average turn around time = ", totalTurnAroundTime/n)
+        print("Average Waiting Time = ", STAT.mean(self.wait))
+        print("Average turn around time = ", STAT.mean(self.turnAroundT))
 
 class FIFO:
 
@@ -104,16 +104,17 @@ class FIFO:
         	self.turnAroundT[val] = self.duration[val] + self.wait[val]
     	
     def findAvgTime(self):
-
-    	self.findWaitingTime()
-    	self.findTurnAroundTime()    	
-    	print("Job ID \t\t Duration \t Arrival Time \t\t Waiting", 
+        totalWait = 0
+        totalTurnAroundTime = 0
+        self.findWaitingTime()
+        self.findTurnAroundTime()
+        print("Job ID \t\t Duration \t Arrival Time \t\t Waiting", 
 		"Time \t Turn-Around Time \t Completion Time \n") 
         for i in range(self.length):
 
             totalWait += self.wait[i]
             totalTurnAroundTime += self.turnAroundT[i]
-            completionTime = self.turnAroundT[i] + arrivalTime[i]
+            completionTime = self.turnAroundT[i] + self.arrivalTime[i]
 
             print(" ", i + 1, "\t\t", self.duration[i], "\t\t", self.arrivalTime[i], 
 			"\t\t", self.wait[i], "\t\t ", self.turnAroundT[i], "\t\t ", completionTime)
@@ -172,7 +173,7 @@ class SJF:
 
     def findTurnAroundTime(self):
         for i in range(self.length):
-            self.turnAroundT[i] = duration[i] + self.wait[i]
+            self.turnAroundT[i] = self.duration[i] + self.wait[i]
 
     def findAvgTime(self):
         totalWait = 0
@@ -185,7 +186,7 @@ class SJF:
 
             totalWait += self.wait[i]
             totalTurnAroundTime += self.turnAroundT[i]
-            completionTime = self.turnAroundT[i] + arrivalTime[i]
+            completionTime = self.turnAroundT[i] + self.arrivalTime[i]
 
             print(" ", i + 1, "\t\t", self.duration[i], "\t\t", self.arrivalTime[i], 
 			"\t\t", self.wait[i], "\t\t ", self.turnAroundT[i], "\t\t ", completionTime)
@@ -246,7 +247,7 @@ class BJF:
 
     def findTurnAroundTime(self):
         for i in range(self.length):
-            self.turnAroundT[i] = duration[i] + self.wait[i]
+            self.turnAroundT[i] = self.duration[i] + self.wait[i]
 
     def findAvgTime(self):
         totalWait = 0
@@ -259,12 +260,12 @@ class BJF:
 
             totalWait += self.wait[i]
             totalTurnAroundTime += self.turnAroundT[i]
-            completionTime = self.turnAroundT[i] + arrivalTime[i]
+            completionTime = self.turnAroundT[i] + self.arrivalTime[i]
 
             print(" ", i + 1, "\t\t", self.duration[i], "\t\t", self.arrivalTime[i], 
 			"\t\t", self.wait[i], "\t\t ", self.turnAroundT[i], "\t\t ", completionTime)
 
-        print("SJF: Processes Burst time Waiting time Turn around time")
+        print("BJF: Processes Burst time Waiting time Turn around time")
         print("Average waiting time: ", STAT.mean(self.wait))
         print("Average turn around time: ", STAT.mean(self.turnAroundT))
 
@@ -309,11 +310,7 @@ class STCF:
 
     #remember, you need to sort the list
     def findWaitingTime(self):
-        #self.wait[0] = 0
-        '''
-        for i in range(1, self.length):
-            self.wait[i] = duration[i - 1] + self.wait[i - 1]
-        '''
+        
         temp = []
         INT_MAX = 999999999
         temp = self.duration
@@ -340,7 +337,7 @@ class STCF:
                 check = False
                 finish_time = time + 1
 
-                self.wait[shortest] = finish_time - duration[shortest] - arrivalTime[shortest]
+                self.wait[shortest] = finish_time - self.duration[shortest] - self.arrivalTime[shortest]
                 if self.wait[shortest] < 0:
                     self.wait[shortest] = 0
             
@@ -348,7 +345,7 @@ class STCF:
             
     def findTurnAroundTime(self):
         for i in range(self.length):
-            self.turnAroundT[i] = duration[i] + self.wait[i]
+            self.turnAroundT[i] = self.duration[i] + self.wait[i]
 
     def findAvgTime(self):
         self.findWaitingTime()
@@ -359,11 +356,11 @@ class STCF:
 
             totalWait += self.wait[i]
             totalTurnAroundTime += self.turnAroundT[i]
-            completionTime = self.turnAroundT[i] + arrivalTime[i]
+            completionTime = self.turnAroundT[i] + self.arrivalTime[i]
 
             print(" ", i + 1, "\t\t", self.duration[i], "\t\t", self.arrivalTime[i], 
 			"\t\t", self.wait[i], "\t\t ", self.turnAroundT[i], "\t\t ", completionTime)
-        print("SJF: Processes Burst time Waiting time Turn around time")
+        print("STCF: Processes Burst time Waiting time Turn around time")
         print("Average waiting time: ", STAT.mean(self.wait))
         print("Average turn around time: ", STAT.mean(self.turnAroundT))
 
@@ -388,21 +385,36 @@ def readFile(file):
         except StopIteration:
             break
 
-    '''print("Job ID: ", jobID)
-    print("Arrival Time: ", arrivalTime)
-    print("Duration: ", duration)'''
+   
     return [jobID, duration, arrivalTime]
 
+def __main__():
+    val = input("Please enter path to your jobs.dat file: ")
+    if val == 'no':
+        jobID, duration, arrivalTime = readFile("final_code/jobs.dat")
+    else:
+        jobID, duration, arrivalTime = readFile(val)
+    jobID = list(map(int, jobID))
+    duration = list(map(int, duration))
+    arrivalTime = list(map(int, arrivalTime))
 
-jobID, duration, arrivalTime = readFile("/home/gauravkuppa24/jobs.dat")
-jobID = list(map(int, jobID))
-duration = list(map(int, duration))
-arrivalTime = list(map(int, arrivalTime))
+
+    fifo = FIFO(jobID, duration, arrivalTime)
+    sjf = SJF(jobID, duration, arrivalTime)
+    bjf = BJF(jobID, duration, arrivalTime)
+    stcf = STCF(jobID, duration, arrivalTime)
+    rr = RoundRobin(jobID, duration, arrivalTime)
+
+    fifo.findAvgTime()
+    sjf.findAvgTime()
+    bjf.findAvgTime()
+    stcf.findAvgTime()
+    rr.findAvgTime()
 
 
+__main__()
 
-sjf = SJF(jobID, duration, arrivalTime)
-sjf.findAvgTime()
+
 
       
 		
